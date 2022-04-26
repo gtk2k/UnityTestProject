@@ -54,14 +54,14 @@ public static class BuildScript
         Debug.Log($"buildConfigPath > {buildConfigPath}");
         Debug.Log($"configJson > {configJson}");
         Debug.Log($"Output Directory > {config.outputDir}");
-        
+
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
         await platformBuild(buildPlayerOptions, BuildTarget.Android, buildSteps, config.outputDir, ".apk");
 
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone, ScriptingImplementation.IL2CPP);
         await platformBuild(buildPlayerOptions, BuildTarget.StandaloneWindows64, buildSteps, config.outputDir, ".exe");
-        
-        await platformBuild(buildPlayerOptions, BuildTarget.WebGL,  buildSteps, config.outputDir, "");
+
+        await platformBuild(buildPlayerOptions, BuildTarget.WebGL, buildSteps, config.outputDir, "");
 
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone, ScriptingImplementation.Mono2x);
         await platformBuild(buildPlayerOptions, BuildTarget.StandaloneLinux64, buildSteps, config.outputDir, ".x86_x64");
@@ -96,9 +96,8 @@ public static class BuildScript
             BuildStepsUpdate(buildSteps, buildTarget, "Zipping");
             await SendBuildSteps(buildSteps);
 
-            ZipFile.CreateFromDirectory(
-            locationPathName,
-            @"C:\Temp\myzip1.zip");
+            var zipFilePath = Path.Combine(locationPathName, platformName);
+            ZipFile.CreateFromDirectory(zipFilePath, $"{zipFilePath}.zip");
 
             BuildStepsUpdate(buildSteps, buildTarget, "Successed");
             await SendBuildSteps(buildSteps);
