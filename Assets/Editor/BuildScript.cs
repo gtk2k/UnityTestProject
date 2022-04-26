@@ -25,6 +25,8 @@ public static class BuildScript
         public string Windows = "None";
         public string Linux = "None";
         public string OSX = "None";
+
+        public string pushId = "None";
         public string ProductName = "None";
     }
 
