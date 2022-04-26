@@ -1,9 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System;
+using System.IO.Compression;
 
 public static class BuildScript
 {
@@ -12,19 +16,30 @@ public static class BuildScript
         public string outputDir;
     }
 
-    private class BuildResult
+    private class BuildSteps
     {
+        public string type = "build_steps";
         public string Android = "None";
+        public string iOS = "None";
+        public string WebGL = "None";
         public string Windows = "None";
         public string Linux = "None";
-        public string WebGL = "None";
-        public string ProductName;
+        public string OSX = "None";
+        public string ProductName = "None";
     }
 
-    public static void MesonBuild()
+    public static async void MesonBuild()
     {
         var paths = GetBuildScenePaths();
-        var buildResult = new BuildResult();
+        var buildSteps = new BuildSteps();
+
+        buildSteps.Android = "Waiting";
+        buildSteps.WebGL = "Waiting";
+        buildSteps.Windows = "Waiting";
+        buildSteps.Linux = "Waiting";
+        buildSteps.ProductName = PlayerSettings.productName;
+
+        await SendBuildSteps(buildSteps);
 
         var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
         var buildConfigPath = Path.Combine(documentsPath, "buildConfig.json");
@@ -39,42 +54,96 @@ public static class BuildScript
         Debug.Log($"buildConfigPath > {buildConfigPath}");
         Debug.Log($"configJson > {configJson}");
         Debug.Log($"Output Directory > {config.outputDir}");
+        
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
-        buildResult.Android = platformBuild(buildPlayerOptions, BuildTarget.Android, config.outputDir, ".apk");
+        await platformBuild(buildPlayerOptions, BuildTarget.Android, buildSteps, config.outputDir, ".apk");
+
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone, ScriptingImplementation.IL2CPP);
-        buildResult.Windows = platformBuild(buildPlayerOptions, BuildTarget.StandaloneWindows64, config.outputDir, ".exe");
-        buildResult.WebGL = platformBuild(buildPlayerOptions, BuildTarget.WebGL, config.outputDir, "");
+        await platformBuild(buildPlayerOptions, BuildTarget.StandaloneWindows64, buildSteps, config.outputDir, ".exe");
+        
+        await platformBuild(buildPlayerOptions, BuildTarget.WebGL,  buildSteps, config.outputDir, "");
+
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone, ScriptingImplementation.Mono2x);
-        buildResult.Linux = platformBuild(buildPlayerOptions, BuildTarget.StandaloneLinux64, config.outputDir, ".x86_x64");
+        await platformBuild(buildPlayerOptions, BuildTarget.StandaloneLinux64, buildSteps, config.outputDir, ".x86_x64");
 
-        buildResult.ProductName = PlayerSettings.productName;
-
-        File.WriteAllText(buildResultPath, JsonUtility.ToJson(buildResult, true));
+        File.WriteAllText(buildResultPath, JsonUtility.ToJson(buildSteps, true));
     }
 
-    private static string platformBuild(BuildPlayerOptions buildPlayerOptions, BuildTarget target, string locationPathName, string ext)
+    private static async Task platformBuild(BuildPlayerOptions buildPlayerOptions, BuildTarget buildTarget, BuildSteps buildSteps, string locationPathName, string ext)
     {
-        var platformName = "";
-        switch (target)
-        {
-            case BuildTarget.Android: platformName = "Android"; break;
-            case BuildTarget.StandaloneWindows64: platformName = "Windows"; break;
-            case BuildTarget.WebGL: platformName = "WebGL"; break;
-            case BuildTarget.StandaloneLinux64: platformName = "Linux"; break;
-        }
+        // TODO Apple Silicon Mac 
+        var platformName =
+            buildTarget == BuildTarget.Android ? "Android" :
+            buildTarget == BuildTarget.iOS ? "iOS" :
+            buildTarget == BuildTarget.WebGL ? "WebGL" :
+            buildTarget == BuildTarget.StandaloneWindows64 ? "Windows" :
+            buildTarget == BuildTarget.StandaloneOSX ? "OSX" :
+            buildTarget == BuildTarget.StandaloneLinux64 ? "Linux" : "";
+
+        if (platformName == "") return;
+
+        BuildStepsUpdate(buildSteps, buildTarget, "Building");
+        await SendBuildSteps(buildSteps);
+
         buildPlayerOptions.locationPathName = Path.Combine(locationPathName, $@"{platformName}\{PlayerSettings.productName}{ext}");
-        buildPlayerOptions.target = target;
+        buildPlayerOptions.target = buildTarget;
         var buildReport = BuildPipeline.BuildPlayer(buildPlayerOptions);
-        if (buildReport.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded)
+        var result = buildReport.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded ? "Successed" : "Failed";
+        Debug.LogError($"{platformName} Build {result}");
+
+        if (result == "Successed")
         {
-            Debug.Log($"{platformName} Build Success");
-            return "Success";
+            BuildStepsUpdate(buildSteps, buildTarget, "Zipping");
+            await SendBuildSteps(buildSteps);
+
+            ZipFile.CreateFromDirectory(
+            locationPathName,
+            @"C:\Temp\myzip1.zip");
+
+            BuildStepsUpdate(buildSteps, buildTarget, "Successed");
+            await SendBuildSteps(buildSteps);
         }
         else
         {
-            Debug.LogError($"{platformName} Build Fail");
-            return "Fail";
+            BuildStepsUpdate(buildSteps, buildTarget, "Failed");
+            await SendBuildSteps(buildSteps);
         }
+    }
+
+    private static void BuildStepsUpdate(BuildSteps buildSteps, BuildTarget buildTarget, string step)
+    {
+        switch (buildTarget)
+        {
+            case BuildTarget.Android:
+                buildSteps.Android = step;
+                break;
+            case BuildTarget.iOS:
+                buildSteps.iOS = step;
+                break;
+            case BuildTarget.WebGL:
+                buildSteps.WebGL = step;
+                break;
+            case BuildTarget.StandaloneWindows64:
+                buildSteps.Windows = step;
+                break;
+            case BuildTarget.StandaloneOSX:
+                buildSteps.OSX = step;
+                break;
+            case BuildTarget.StandaloneLinux64:
+                buildSteps.Linux = step;
+                break;
+        }
+    }
+
+    private static async Task<string> SendBuildSteps(BuildSteps buildResult)
+    {
+        var msg = JsonUtility.ToJson(buildResult);
+        var client = new HttpClient();
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://mesonwebdev.tk/buildSteps");
+        request.Content = new StringContent(msg, Encoding.UTF8, "application/json");
+        var response = await client.SendAsync(request);
+        var res = await response.Content.ReadAsStringAsync();
+        return res;
     }
 
     private static IEnumerable<string> GetBuildScenePaths()
