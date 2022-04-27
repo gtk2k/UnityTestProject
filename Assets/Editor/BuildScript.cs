@@ -41,12 +41,12 @@ public static class BuildScript
         public string LinuxBuildEndTime = "None";
         public string OSXBuildEndTime = "None";
 
-        public int AndroidBuildTotalMinutes = 0;
-        public int iOSBuildTotalMinutes = 0;
-        public int WebGLBuildTotalMinutes = 0;
-        public int WindowsBuildTotalMinutes = 0;
-        public int LinuxBuildTotalMinutes = 0;
-        public int OSXBuildTotalMinutes = 0;
+        public double AndroidBuildTotalSeconds = 0;
+        public double iOSBuildTotalSeconds = 0;
+        public double WebGLBuildTotalSeconds = 0;
+        public double WindowsBuildTotalSeconds = 0;
+        public double LinuxBuildTotalSeconds = 0;
+        public double OSXBuildTotalSeconds = 0;
 
         public string pushId = "None";
         public string repositoryName = "None";
@@ -192,27 +192,27 @@ public static class BuildScript
         {
             case BuildTarget.Android:
                 buildSteps.AndroidBuildEndTime = endTime;
-                buildSteps.AndroidBuildTotalMinutes =  (int)(DateTime.Parse(endTime)- DateTime.Parse(buildSteps.AndroidBuildStartTime)).TotalMinutes;
+                buildSteps.AndroidBuildTotalSeconds =  (int)(DateTime.Parse(endTime)- DateTime.Parse(buildSteps.AndroidBuildStartTime)).TotalSeconds;
                 break;
             case BuildTarget.iOS:
                 buildSteps.iOSBuildEndTime = endTime;
-                buildSteps.iOSBuildTotalMinutes = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.iOSBuildStartTime)).TotalMinutes;
+                buildSteps.iOSBuildTotalSeconds = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.iOSBuildStartTime)).TotalSeconds;
                 break;
             case BuildTarget.WebGL:
                 buildSteps.WebGLBuildEndTime = endTime;
-                buildSteps.WebGLBuildTotalMinutes = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.WebGLBuildStartTime)).TotalMinutes;
+                buildSteps.WebGLBuildTotalSeconds = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.WebGLBuildStartTime)).TotalSeconds;
                 break;
             case BuildTarget.StandaloneWindows64:
                 buildSteps.WindowsBuildEndTime = endTime;
-                buildSteps.WindowsBuildTotalMinutes = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.WindowsBuildStartTime)).TotalMinutes;
+                buildSteps.WindowsBuildTotalSeconds = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.WindowsBuildStartTime)).TotalSeconds;
                 break;
             case BuildTarget.StandaloneOSX:
                 buildSteps.OSXBuildEndTime = endTime;
-                buildSteps.OSXBuildTotalMinutes = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.OSXBuildStartTime)).TotalMinutes;
+                buildSteps.OSXBuildTotalSeconds = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.OSXBuildStartTime)).TotalSeconds;
                 break;
             case BuildTarget.StandaloneLinux64:
                 buildSteps.LinuxBuildEndTime = endTime;
-                buildSteps.LinuxBuildTotalMinutes = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.LinuxBuildStartTime)).TotalMinutes;
+                buildSteps.LinuxBuildTotalSeconds = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.LinuxBuildStartTime)).TotalSeconds;
                 break;
         }
     }
