@@ -192,27 +192,27 @@ public static class BuildScript
         {
             case BuildTarget.Android:
                 buildSteps.AndroidBuildEndTime = endTime;
-                buildSteps.AndroidBuildTotalMinutes =  (int)(DateTime.Parse(buildSteps.AndroidBuildStartTime) - DateTime.Parse(endTime)).TotalMinutes;
+                buildSteps.AndroidBuildTotalMinutes =  (int)(DateTime.Parse(endTime)- DateTime.Parse(buildSteps.AndroidBuildStartTime)).TotalMinutes;
                 break;
             case BuildTarget.iOS:
                 buildSteps.iOSBuildEndTime = endTime;
-                buildSteps.iOSBuildTotalMinutes = (int)(DateTime.Parse(buildSteps.iOSBuildStartTime) - DateTime.Parse(endTime)).TotalMinutes;
+                buildSteps.iOSBuildTotalMinutes = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.iOSBuildStartTime)).TotalMinutes;
                 break;
             case BuildTarget.WebGL:
                 buildSteps.WebGLBuildEndTime = endTime;
-                buildSteps.WebGLBuildTotalMinutes = (int)(DateTime.Parse(buildSteps.WebGLBuildStartTime) - DateTime.Parse(endTime)).TotalMinutes;
+                buildSteps.WebGLBuildTotalMinutes = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.WebGLBuildStartTime)).TotalMinutes;
                 break;
             case BuildTarget.StandaloneWindows64:
                 buildSteps.WindowsBuildEndTime = endTime;
-                buildSteps.WindowsBuildTotalMinutes = (int)(DateTime.Parse(buildSteps.WindowsBuildStartTime) - DateTime.Parse(endTime)).TotalMinutes;
+                buildSteps.WindowsBuildTotalMinutes = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.WindowsBuildStartTime)).TotalMinutes;
                 break;
             case BuildTarget.StandaloneOSX:
                 buildSteps.OSXBuildEndTime = endTime;
-                buildSteps.OSXBuildTotalMinutes = (int)(DateTime.Parse(buildSteps.OSXBuildStartTime) - DateTime.Parse(endTime)).TotalMinutes;
+                buildSteps.OSXBuildTotalMinutes = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.OSXBuildStartTime)).TotalMinutes;
                 break;
             case BuildTarget.StandaloneLinux64:
                 buildSteps.LinuxBuildEndTime = endTime;
-                buildSteps.LinuxBuildTotalMinutes = (int)(DateTime.Parse(buildSteps.LinuxBuildStartTime) - DateTime.Parse(endTime)).TotalMinutes;
+                buildSteps.LinuxBuildTotalMinutes = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.LinuxBuildStartTime)).TotalMinutes;
                 break;
         }
     }
