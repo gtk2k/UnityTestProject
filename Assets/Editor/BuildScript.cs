@@ -101,7 +101,7 @@ public static class BuildScript
             var zipFilePath = Path.Combine(locationPathName, platformName);
             ZipFile.CreateFromDirectory(zipFilePath, $"{zipFilePath}.zip");
 
-            BuildStepsUpdate(buildSteps, buildTarget, "Failed");
+            BuildStepsUpdate(buildSteps, buildTarget, "Successed");
             await SendBuildSteps(buildSteps);
         }
         else
