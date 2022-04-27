@@ -19,6 +19,7 @@ public static class BuildScript
     private class BuildSteps
     {
         public string type = "build_steps";
+        
         public string Android = "None";
         public string iOS = "None";
         public string WebGL = "None";
@@ -26,7 +27,30 @@ public static class BuildScript
         public string Linux = "None";
         public string OSX = "None";
 
+        public string AndroidBuildStartTime = "None";
+        public string iOSBuildStartTime = "None";
+        public string WebGLBuildStartTime = "None";
+        public string WindowsBuildStartTime = "None";
+        public string LinuxBuildStartTime = "None";
+        public string OSXBuildStartTime = "None";
+
+        public string AndroidBuildEndTime = "None";
+        public string iOSBuildEndTime = "None";
+        public string WebGLBuildEndTime = "None";
+        public string WindowsBuildEndTime = "None";
+        public string LinuxBuildEndTime = "None";
+        public string OSXBuildEndTime = "None";
+
+        public int AndroidBuildTotalMinutes = 0;
+        public int iOSBuildTotalMinutes = 0;
+        public int WebGLBuildTotalMinutes = 0;
+        public int WindowsBuildTotalMinutes = 0;
+        public int LinuxBuildTotalMinutes = 0;
+        public int OSXBuildTotalMinutes = 0;
+
         public string pushId = "None";
+        public string repositoryName = "None";
+        public string branchName = "None";
         public string ProductName = "None";
     }
 
@@ -84,6 +108,7 @@ public static class BuildScript
 
         if (platformName == "") return;
 
+        BuildStartTimeUpdate(buildSteps, buildTarget, DateTime.Now.ToString("o"));
         BuildStepsUpdate(buildSteps, buildTarget, "Building");
         await SendBuildSteps(buildSteps);
 
@@ -92,9 +117,10 @@ public static class BuildScript
         var buildReport = BuildPipeline.BuildPlayer(buildPlayerOptions);
         var result = buildReport.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded ? "Successed" : "Failed";
         Debug.LogError($"{platformName} Build {result}");
-
+        
         if (result == "Successed")
         {
+            BuildEndTimeUpdate(buildSteps, buildTarget, DateTime.Now.ToString("o"));
             BuildStepsUpdate(buildSteps, buildTarget, "Zipping");
             await SendBuildSteps(buildSteps);
 
@@ -132,6 +158,61 @@ public static class BuildScript
                 break;
             case BuildTarget.StandaloneLinux64:
                 buildSteps.Linux = step;
+                break;
+        }
+    }
+    private static void BuildStartTimeUpdate(BuildSteps buildSteps, BuildTarget buildTarget, string startTime)
+    {
+        switch (buildTarget)
+        {
+            case BuildTarget.Android:
+                buildSteps.AndroidBuildStartTime = startTime;
+                break;
+            case BuildTarget.iOS:
+                buildSteps.iOSBuildStartTime = startTime;
+                break;
+            case BuildTarget.WebGL:
+                buildSteps.WebGLBuildStartTime = startTime;
+                break;
+            case BuildTarget.StandaloneWindows64:
+                buildSteps.WindowsBuildStartTime = startTime;
+                break;
+            case BuildTarget.StandaloneOSX:
+                buildSteps.OSXBuildStartTime = startTime;
+                break;
+            case BuildTarget.StandaloneLinux64:
+                buildSteps.LinuxBuildStartTime = startTime;
+                break;
+        }
+    }
+
+    private static void BuildEndTimeUpdate(BuildSteps buildSteps, BuildTarget buildTarget, string endTime)
+    {
+        switch (buildTarget)
+        {
+            case BuildTarget.Android:
+                buildSteps.AndroidBuildEndTime = endTime;
+                buildSteps.AndroidBuildTotalMinutes =  (int)(DateTime.Parse(buildSteps.AndroidBuildStartTime) - DateTime.Parse(endTime)).TotalMinutes;
+                break;
+            case BuildTarget.iOS:
+                buildSteps.iOSBuildEndTime = endTime;
+                buildSteps.iOSBuildTotalMinutes = (int)(DateTime.Parse(buildSteps.iOSBuildStartTime) - DateTime.Parse(endTime)).TotalMinutes;
+                break;
+            case BuildTarget.WebGL:
+                buildSteps.WebGLBuildEndTime = endTime;
+                buildSteps.WebGLBuildTotalMinutes = (int)(DateTime.Parse(buildSteps.WebGLBuildStartTime) - DateTime.Parse(endTime)).TotalMinutes;
+                break;
+            case BuildTarget.StandaloneWindows64:
+                buildSteps.WindowsBuildEndTime = endTime;
+                buildSteps.WindowsBuildTotalMinutes = (int)(DateTime.Parse(buildSteps.WindowsBuildStartTime) - DateTime.Parse(endTime)).TotalMinutes;
+                break;
+            case BuildTarget.StandaloneOSX:
+                buildSteps.OSXBuildEndTime = endTime;
+                buildSteps.OSXBuildTotalMinutes = (int)(DateTime.Parse(buildSteps.OSXBuildStartTime) - DateTime.Parse(endTime)).TotalMinutes;
+                break;
+            case BuildTarget.StandaloneLinux64:
+                buildSteps.LinuxBuildEndTime = endTime;
+                buildSteps.LinuxBuildTotalMinutes = (int)(DateTime.Parse(buildSteps.LinuxBuildStartTime) - DateTime.Parse(endTime)).TotalMinutes;
                 break;
         }
     }
