@@ -52,6 +52,7 @@ public static class BuildScript
         public string repositoryName = "None";
         public string branchName = "None";
         public string ProductName = "None";
+        public string AndroidPackageName = "None";
     }
 
     public static async void MesonBuild()
