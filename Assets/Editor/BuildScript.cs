@@ -88,6 +88,9 @@ public static class BuildScript
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone, ScriptingImplementation.IL2CPP);
         await platformBuild(buildPlayerOptions, BuildTarget.StandaloneWindows64, buildSteps, config.outputDir, ".exe");
 
+        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
+        PlayerSettings.SetScriptingBackend(BuildTargetGroup.WebGL, ScriptingImplementation.IL2CPP);
+        //PlayerSettings.WebGL.template = "PROJECT:Better2020";
         await platformBuild(buildPlayerOptions, BuildTarget.WebGL, buildSteps, config.outputDir, "");
 
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone, ScriptingImplementation.Mono2x);
@@ -115,7 +118,6 @@ public static class BuildScript
 
         buildPlayerOptions.locationPathName = Path.Combine(locationPathName, $@"{platformName}\{PlayerSettings.productName}{ext}");
         buildPlayerOptions.target = buildTarget;
-        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
         var buildReport = BuildPipeline.BuildPlayer(buildPlayerOptions);
         var result = buildReport.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded ? "Successed" : "Failed";
         Debug.LogError($"{platformName} Build {result}");
