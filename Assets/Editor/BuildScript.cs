@@ -87,6 +87,7 @@ public static class BuildScript
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone, ScriptingImplementation.IL2CPP);
         await platformBuild(buildPlayerOptions, BuildTarget.StandaloneWindows64, buildSteps, config.outputDir, ".exe");
 
+        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
         await platformBuild(buildPlayerOptions, BuildTarget.WebGL, buildSteps, config.outputDir, "");
 
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone, ScriptingImplementation.Mono2x);
