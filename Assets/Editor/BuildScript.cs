@@ -82,12 +82,13 @@ public static class BuildScript
         Debug.Log($"Output Directory > {config.outputDir}");
 
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
+        PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
         await platformBuild(buildPlayerOptions, BuildTarget.Android, buildSteps, config.outputDir, ".apk");
 
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone, ScriptingImplementation.IL2CPP);
         await platformBuild(buildPlayerOptions, BuildTarget.StandaloneWindows64, buildSteps, config.outputDir, ".exe");
 
-        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
+        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
         await platformBuild(buildPlayerOptions, BuildTarget.WebGL, buildSteps, config.outputDir, "");
 
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone, ScriptingImplementation.Mono2x);
