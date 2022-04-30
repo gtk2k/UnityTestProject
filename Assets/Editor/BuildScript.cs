@@ -56,6 +56,9 @@ public static class BuildScript
 
     public static async void MesonBuild()
     {
+        var args = System.Environment.GetCommandLineArgs().ToList();
+        var i = args.FindIndex((arg) => arg == "-outputDir");
+        var outputDir = args[i + 1];
         var paths = GetBuildScenePaths();
         var buildSteps = new BuildSteps();
 
@@ -70,31 +73,28 @@ public static class BuildScript
         var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
         var buildConfigPath = Path.Combine(documentsPath, "buildConfig.json");
         var buildResultPath = Path.Combine(documentsPath, "buildResult.json");
-        var configJson = File.ReadAllText(buildConfigPath);
-        var config = JsonUtility.FromJson<BuildConfig>(configJson);
         var buildPlayerOptions = new BuildPlayerOptions();
         buildPlayerOptions.options = BuildOptions.Development;
         buildPlayerOptions.scenes = paths.ToArray();
 
         Debug.Log($"Documents Folder Path > {documentsPath}");
         Debug.Log($"buildConfigPath > {buildConfigPath}");
-        Debug.Log($"configJson > {configJson}");
-        Debug.Log($"Output Directory > {config.outputDir}");
+        Debug.Log($"Output Directory > {outputDir}");
 
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
         PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
-        await platformBuild(buildPlayerOptions, BuildTarget.Android, buildSteps, config.outputDir, ".apk");
+        await platformBuild(buildPlayerOptions, BuildTarget.Android, buildSteps, outputDir, ".apk");
 
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone, ScriptingImplementation.IL2CPP);
-        await platformBuild(buildPlayerOptions, BuildTarget.StandaloneWindows64, buildSteps, config.outputDir, ".exe");
+        await platformBuild(buildPlayerOptions, BuildTarget.StandaloneWindows64, buildSteps, outputDir, ".exe");
 
         PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.WebGL, ScriptingImplementation.IL2CPP);
         //PlayerSettings.WebGL.template = "PROJECT:Better2020";
-        await platformBuild(buildPlayerOptions, BuildTarget.WebGL, buildSteps, config.outputDir, "");
+        await platformBuild(buildPlayerOptions, BuildTarget.WebGL, buildSteps, outputDir, "");
 
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone, ScriptingImplementation.Mono2x);
-        await platformBuild(buildPlayerOptions, BuildTarget.StandaloneLinux64, buildSteps, config.outputDir, ".x86_x64");
+        await platformBuild(buildPlayerOptions, BuildTarget.StandaloneLinux64, buildSteps, outputDir, ".x86_x64");
 
         File.WriteAllText(buildResultPath, JsonUtility.ToJson(buildSteps, true));
     }
