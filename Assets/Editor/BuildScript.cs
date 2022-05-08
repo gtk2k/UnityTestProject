@@ -161,7 +161,7 @@ public static class BuildScript
             {
                 BuildEndTimeUpdate(buildSteps, buildTarget, DateTime.Now.ToString("o"));
                 BuildStepsUpdate(buildSteps, buildTarget, "Zipping");
-                await SendBuildSteps(buildSteps);
+                //await SendBuildSteps(buildSteps);
                 var zipFilePath = Path.Combine(locationPathName, platformName);
                 ZipFile.CreateFromDirectory(zipFilePath, $"{zipFilePath}.zip");
             }
