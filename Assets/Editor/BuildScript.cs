@@ -19,7 +19,7 @@ public static class BuildScript
     private class BuildSteps
     {
         public string type = "build_steps";
-        
+
         public string Android = "None";
         public string iOS = "None";
         public string WebGL = "None";
@@ -99,6 +99,32 @@ public static class BuildScript
         File.WriteAllText(buildResultPath, JsonUtility.ToJson(buildSteps, true));
     }
 
+    public static async void MesonIOSBuild()
+    {
+        var paths = GetBuildScenePaths();
+        var buildSteps = new BuildSteps();
+
+        buildSteps.iOS = "Waiting";
+        buildSteps.ProductName = PlayerSettings.productName;
+
+        await SendBuildSteps(buildSteps);
+
+        var args = System.Environment.GetCommandLineArgs().ToList();
+        var i = args.FindIndex((arg) => arg == "-outputDir");
+        var outputDir = args[i + 1];
+        var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+        var buildResultPath = Path.Combine(documentsPath, "buildResult.json");
+
+        var buildPlayerOptions = new BuildPlayerOptions();
+        buildPlayerOptions.options = BuildOptions.None;
+        buildPlayerOptions.scenes = paths.ToArray();
+
+        PlayerSettings.SetScriptingBackend(BuildTargetGroup.iOS, ScriptingImplementation.IL2CPP);
+        await platformBuild(buildPlayerOptions, BuildTarget.iOS, buildSteps, outputDir, ".xcodeproj");
+
+        File.WriteAllText(buildResultPath, JsonUtility.ToJson(buildSteps, true));
+    }
+
     private static async Task platformBuild(BuildPlayerOptions buildPlayerOptions, BuildTarget buildTarget, BuildSteps buildSteps, string locationPathName, string ext)
     {
         // TODO Apple Silicon Mac 
@@ -116,20 +142,29 @@ public static class BuildScript
         BuildStepsUpdate(buildSteps, buildTarget, "Building");
         await SendBuildSteps(buildSteps);
 
-        buildPlayerOptions.locationPathName = Path.Combine(locationPathName, $@"{platformName}\{PlayerSettings.productName}{ext}");
+        if (buildTarget == BuildTarget.iOS)
+        {
+            buildPlayerOptions.locationPathName = locationPathName;
+        }
+        else
+        {
+            buildPlayerOptions.locationPathName = Path.Combine(locationPathName, $@"{platformName}\{PlayerSettings.productName}{ext}");
+        }
         buildPlayerOptions.target = buildTarget;
         var buildReport = BuildPipeline.BuildPlayer(buildPlayerOptions);
         var result = buildReport.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded ? "Successed" : "Failed";
         Debug.LogError($"{platformName} Build {result}");
-        
+
         if (result == "Successed")
         {
-            BuildEndTimeUpdate(buildSteps, buildTarget, DateTime.Now.ToString("o"));
-            BuildStepsUpdate(buildSteps, buildTarget, "Zipping");
-            await SendBuildSteps(buildSteps);
-
-            var zipFilePath = Path.Combine(locationPathName, platformName);
-            ZipFile.CreateFromDirectory(zipFilePath, $"{zipFilePath}.zip");
+            if (buildTarget != BuildTarget.iOS)
+            {
+                BuildEndTimeUpdate(buildSteps, buildTarget, DateTime.Now.ToString("o"));
+                BuildStepsUpdate(buildSteps, buildTarget, "Zipping");
+                await SendBuildSteps(buildSteps);
+                var zipFilePath = Path.Combine(locationPathName, platformName);
+                ZipFile.CreateFromDirectory(zipFilePath, $"{zipFilePath}.zip");
+            }
 
             BuildStepsUpdate(buildSteps, buildTarget, "Successed");
             await SendBuildSteps(buildSteps);
@@ -196,7 +231,7 @@ public static class BuildScript
         {
             case BuildTarget.Android:
                 buildSteps.AndroidBuildEndTime = endTime;
-                buildSteps.AndroidBuildTotalSeconds =  (int)(DateTime.Parse(endTime)- DateTime.Parse(buildSteps.AndroidBuildStartTime)).TotalSeconds;
+                buildSteps.AndroidBuildTotalSeconds = (int)(DateTime.Parse(endTime) - DateTime.Parse(buildSteps.AndroidBuildStartTime)).TotalSeconds;
                 break;
             case BuildTarget.iOS:
                 buildSteps.iOSBuildEndTime = endTime;
