@@ -101,32 +101,50 @@ public static class BuildScript
 
     public static async void MesonIOSBuild()
     {
+        Debug.Log("=== MesonIOSBuild 1");
         var paths = GetBuildScenePaths();
+        Debug.Log("=== MesonIOSBuild 2");
         var buildSteps = new BuildSteps();
+        Debug.Log("=== MesonIOSBuild 3");
 
         buildSteps.iOS = "Waiting";
+        Debug.Log("=== MesonIOSBuild 4");
         buildSteps.ProductName = PlayerSettings.productName;
+        Debug.Log("=== MesonIOSBuild 5");
 
-        await SendBuildSteps(buildSteps);
+        //await SendBuildSteps(buildSteps);
+        Debug.Log("=== MesonIOSBuild 6");
 
         var args = System.Environment.GetCommandLineArgs().ToList();
+        Debug.Log("=== MesonIOSBuild 7");
         var i = args.FindIndex((arg) => arg == "-outputDir");
+        Debug.Log("=== MesonIOSBuild 8");
         var outputDir = args[i + 1];
+        Debug.Log("=== MesonIOSBuild 9");
         var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+        Debug.Log("=== MesonIOSBuild 10");
         var buildResultPath = Path.Combine(documentsPath, "buildResult.json");
+        Debug.Log("=== MesonIOSBuild 11");
 
         var buildPlayerOptions = new BuildPlayerOptions();
+        Debug.Log("=== MesonIOSBuild 12");
         buildPlayerOptions.options = BuildOptions.None;
+        Debug.Log("=== MesonIOSBuild 13");
         buildPlayerOptions.scenes = paths.ToArray();
+        Debug.Log("=== MesonIOSBuild 14");
 
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.iOS, ScriptingImplementation.IL2CPP);
+        Debug.Log("=== MesonIOSBuild 15");
         await platformBuild(buildPlayerOptions, BuildTarget.iOS, buildSteps, outputDir, ".xcodeproj");
+        Debug.Log("=== MesonIOSBuild 16");
 
         File.WriteAllText(buildResultPath, JsonUtility.ToJson(buildSteps, true));
+        Debug.Log("=== MesonIOSBuild 17");
     }
 
     private static async Task platformBuild(BuildPlayerOptions buildPlayerOptions, BuildTarget buildTarget, BuildSteps buildSteps, string locationPathName, string ext)
     {
+        Debug.Log("=== platformBuild 1");
         // TODO Apple Silicon Mac 
         var platformName =
             buildTarget == BuildTarget.Android ? "Android" :
@@ -136,24 +154,35 @@ public static class BuildScript
             buildTarget == BuildTarget.StandaloneOSX ? "OSX" :
             buildTarget == BuildTarget.StandaloneLinux64 ? "Linux" : "";
 
+        Debug.Log("=== platformBuild 2");
         if (platformName == "") return;
 
+        Debug.Log("=== platformBuild 3");
         BuildStartTimeUpdate(buildSteps, buildTarget, DateTime.Now.ToString("o"));
+        Debug.Log("=== platformBuild 4");
         BuildStepsUpdate(buildSteps, buildTarget, "Building");
-        await SendBuildSteps(buildSteps);
+        Debug.Log("=== platformBuild 5");
+        //await SendBuildSteps(buildSteps);
+        Debug.Log("=== platformBuild 6");
 
         if (buildTarget == BuildTarget.iOS)
         {
+            Debug.Log("=== platformBuild 7");
             buildPlayerOptions.locationPathName = locationPathName;
+            Debug.Log("=== platformBuild 8");
         }
         else
         {
             buildPlayerOptions.locationPathName = Path.Combine(locationPathName, $@"{platformName}\{PlayerSettings.productName}{ext}");
         }
         buildPlayerOptions.target = buildTarget;
+        Debug.Log("=== platformBuild 9");
         var buildReport = BuildPipeline.BuildPlayer(buildPlayerOptions);
+        Debug.Log("=== platformBuild 10");
         var result = buildReport.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded ? "Successed" : "Failed";
+        Debug.Log("=== platformBuild 11");
         Debug.LogError($"{platformName} Build {result}");
+        Debug.Log("=== platformBuild 12");
 
         if (result == "Successed")
         {
@@ -161,18 +190,24 @@ public static class BuildScript
             {
                 BuildEndTimeUpdate(buildSteps, buildTarget, DateTime.Now.ToString("o"));
                 BuildStepsUpdate(buildSteps, buildTarget, "Zipping");
-                //await SendBuildSteps(buildSteps);
+                await SendBuildSteps(buildSteps);
                 var zipFilePath = Path.Combine(locationPathName, platformName);
                 ZipFile.CreateFromDirectory(zipFilePath, $"{zipFilePath}.zip");
             }
 
+            Debug.Log("=== platformBuild 13");
             BuildStepsUpdate(buildSteps, buildTarget, "Successed");
-            await SendBuildSteps(buildSteps);
+            Debug.Log("=== platformBuild 14");
+            //await SendBuildSteps(buildSteps);
+            Debug.Log("=== platformBuild 15");
         }
         else
         {
+            Debug.Log("=== platformBuild 16");
             BuildStepsUpdate(buildSteps, buildTarget, "Failed");
+            Debug.Log("=== platformBuild 17");
             await SendBuildSteps(buildSteps);
+            Debug.Log("=== platformBuild 18");
         }
     }
 
